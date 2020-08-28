@@ -7,6 +7,7 @@ class Player:
         self.width = width
         self.height = height
         self.onPlatform = False
+        self.velocity = [0,0]
     
     def getX(self):
         return self.x
@@ -35,6 +36,9 @@ class Player:
     def setOnPlatform(self, result):
         self.onPlatform = result
 
+    def getVelocity(self):
+        return self.velocity
+
     def setVelocity(self, x, y):
         self.velocity = [x,y]
     
@@ -50,5 +54,5 @@ class Player:
         if self.x < 0:
             self.velocity[0] *= 1
 
-        if x + width > 800:
+        if self.x + self.width > 800:
             self.velocity[0] *= -1 

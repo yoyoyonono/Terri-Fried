@@ -1,6 +1,7 @@
 import pygame
 import pygame.ftfont
 import pygame.mixer
+from math import sin
 from player import Player
 from platform1 import Platform
 
@@ -15,7 +16,7 @@ score = ''
 highscore = ''
 
 titleScreen = True
-playCoinFx = False
+playCoinFX = False
 
 def addScore(amount: int):
     global scoreInt, highScoreInt
@@ -42,13 +43,14 @@ def resetGame():
     player.setY(platforms[0].getY() - player.getHeight())
 
 def checkPlayerCollision():
+    global playCoinFX
     onPlatform = False
     for i in range(4):
-        if platforms[i].getHasCoin() and player.getX() + player.getWidth() - 3 > platforms[i].getCoinX() and player.getX() + 3 < platforms[i].getCoinX() + 24 and player.getY() + player.getHeigh() - 3 > platforms[i].getcoinY() and player.getY + 3 < platforms[i].getCoinY() + 24:
+        if platforms[i].getHasCoin() and player.getX() + player.getWidth() - 3 > platforms[i].getCoinX() and player.getX() + 3 < platforms[i].getCoinX() + 24 and player.getY() - player.getHeight() + 3 < platforms[i].getCoinY() and player.getY() - 3 > platforms[i].getCoinY() - 24:
             addScore(1)
             platforms[i].setHasCoin(False)
             playCoinFX = True
-        if player.getX() + 1 < platforms[i].getX() + platforms[i].getWidth() and player.getX() + player.getWidth() > platforms[i].getX() and player.getY() + player.getHeight() >= platforms[i].getY() and player.getY() < platforms[i].getY() + platforms[i].getHeight():
+        if player.getX() + 1 < platforms[i].getX() + platforms[i].getWidth() and player.getX() + player.getWidth() > platforms[i].getX() and player.getY() - player.getHeight() <= platforms[i].getY() and player.getY() > platforms[i].getY() - platforms[i].getHeight():
             if player.getY() > platforms[i].getY() + platforms[i].getHeight()/2:
                 player.setVelocity(player.getVelocity()[0], 5)
             elif player.getY() + player.getHeight() < platforms[i].getY() + platforms[i].getHeight():
@@ -57,7 +59,7 @@ def checkPlayerCollision():
     player.setOnPlatform(onPlatform)
 
 def main():
-    global titleScreen
+    global titleScreen, playCoinFX
     resetScore()
     highscore = 'BEST: ' + str(highScoreInt)
     screenWidth = 800
@@ -99,18 +101,20 @@ def main():
     clock = pygame.time.Clock()
     backgroundColor = (int(0.933*255), int(0.894*255), int(0.882*255), int(1.0*255))
     clickToBeginColor = (int(0.698*255), int(0.588*255), int(0.49*255), int(0.4*255))
+    platformColor = (int(0.698*255), int(0.588*255), int(0.49*255), int(1.0*255))
     polyMarsColor = (int(0.835*255), int(0.502*255), int(0.353*255), int(1.0*255))
+    lineColor = (int(0.906*255), int(0.847*255), int(0.788*255), int(1.0*255))
     while running:
         if titleScreen:
             if splashTimer > 120:
                 if not playedSelect:
-                    fxLaunch.play()
+                    fxSelect.play()
                     playedSelect = True
                 screen.fill(backgroundColor)
-                screen.blit(logo, (screenWidth/2 - 200, screenHeight/2 - 45 - 30))
-                screen.blit(font32.render(highscore, True, (0, 0, 0)), (screenWidth/2 - 37, screenHeight/2 + 10))
-                screen.blit(font32.render('CLICK ANYWHERE TO BEGIN', True, clickToBeginColor), (screenWidth/2 - 134, screenHeight/2 + 50))
-                if pygame.mouse.get_pressed():
+                screen.blit(logo, (int(screenWidth/2 - 200), int(screenHeight/2 - 45 - 30)))
+                screen.blit(font32.render(highscore, True, (0, 0, 0)), (int(screenWidth/2 - 37), int(screenHeight/2 + 10)))
+                screen.blit(font32.render('CLICK ANYWHERE TO BEGIN', True, clickToBeginColor), (int(screenWidth/2 - 134), int(screenHeight/2 + 50)))
+                if pygame.mouse.get_pressed()[0]:
                     fxSelect.play()
                     titleScreen = False
                     (mouseDownX, mouseDownY) = pygame.mouse.get_pos()
@@ -119,10 +123,55 @@ def main():
                     fxSplash.play()
                     playedSplash = True
                 screen.fill(backgroundColor)
-                screen.blit(font32.render('POLYMARS', True, polyMarsColor), (screenWidth/2 - 54, screenHeight/2 + 3))
-                screen.blit(splashEggSprite, (screenWidth/2 - 16, screenHeight/2 - 16 - 23))
+                screen.blit(font32.render('POLYMARS', True, polyMarsColor), (int(screenWidth/2 - 54), int(screenHeight/2 - 3)))
+                screen.blit(splashEggSprite, (int(screenWidth/2 - 16), int(screenHeight/2 - 16 - 23)))
                 splashTimer += 1
-                
+        else:
+            screen.fill(backgroundColor)
+            if playCoinFX:
+                fxCoin.play()
+                playCoinFX = False
+            if pygame.mouse.get_pressed()[0] and player.isOnGround():
+                fxClick.play()
+                (mouseDownX, mouseDownY) = pygame.mouse.get_pos()
+            if (not pygame.mouse.get_pressed()[0]) and player.isOnGround():
+                if firstTime:
+                    firstTime = False
+                else:
+                    fxLaunch.play()
+                    if player.isOnPlatform():
+                        player.setY(player.getY() + 1)
+                    player.setVelocity(pygame.mouse.get_pos()[0]*0.8, pygame.mouse.get_pos()[1]*0.8) 
+            checkPlayerCollision()
+            player.updatePosition()
+            if player.getY() < 0:
+                fxDeath.play()
+                resetGame()
+            [i.updatePosition() for i in platforms]
+    
+            lavaY = screenHeight - 43 - sin(timer) * 5
+            timer += 0.05
+    
+            if pygame.mouse.get_pressed()[0] and player.isOnGround():
+                pygame.draw.line(screen, 
+                    lineColor,
+                    (int(mouseDownX + (player.getX() - mouseDownX) + (player.getWidth()/2)), 
+                        int(mouseDownY + (player.getY() - mouseDownY) + (player.getHeight()/2))), 
+                    (int(pygame.mouse.get_pos()[0] + (player.getX() - mouseDownX) + (player.getWidth()/2)), 
+                        int(pygame.mouse.get_pos()[1] + (player.getY() - mouseDownY) + (player.getHeight()/2))), 
+                    3)
+            
+            for i in range(4):
+                screen.blit(platformSprite, (platforms[i].getX(), platforms[i].getY()))
+                if platforms[i].getHasCoin():
+                    screen.blit(coinSprite, (platforms[i].getX(), platforms[i].getY()))
+    
+            screen.blit(playerSprite, (int(player.getX()), int(player.getY())))
+            screen.blit(lavaSprite, (0, int(lavaY)))
+            screen.blit(scoreBoxSprite, (17, 17))
+            screen.blit(font.render(score, True, (0, 0, 0)), (28, 20))
+            screen.blit(font.render(highscore, True, (0, 0, 0)), (17, 90))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
