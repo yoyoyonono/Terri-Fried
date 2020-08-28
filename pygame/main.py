@@ -99,6 +99,7 @@ def main():
 
     #my own variables for optimization purposes
     clock = pygame.time.Clock()
+    wasMouse = False
     backgroundColor = (int(0.933*255), int(0.894*255), int(0.882*255), int(1.0*255))
     clickToBeginColor = (int(0.698*255), int(0.588*255), int(0.49*255), int(0.4*255))
     platformColor = (int(0.698*255), int(0.588*255), int(0.49*255), int(1.0*255))
@@ -131,10 +132,10 @@ def main():
             if playCoinFX:
                 fxCoin.play()
                 playCoinFX = False
-            if pygame.mouse.get_pressed()[0] and player.isOnGround():
+            if (pygame.mouse.get_pressed()[0] and not wasMouse) and player.isOnGround():
                 fxClick.play()
                 (mouseDownX, mouseDownY) = pygame.mouse.get_pos()
-            if (not pygame.mouse.get_pressed()[0]) and player.isOnGround():
+            if (not pygame.mouse.get_pressed()[0] and wasMouse) and player.isOnGround():
                 if firstTime:
                     firstTime = False
                 else:
@@ -144,7 +145,7 @@ def main():
                     player.setVelocity(pygame.mouse.get_pos()[0]*0.8, pygame.mouse.get_pos()[1]*0.8) 
             checkPlayerCollision()
             player.updatePosition()
-            if player.getY() < 0:
+            if player.getY() > screenHeight:
                 fxDeath.play()
                 resetGame()
             [i.updatePosition() for i in platforms]
@@ -164,13 +165,15 @@ def main():
             for i in range(4):
                 screen.blit(platformSprite, (platforms[i].getX(), platforms[i].getY()))
                 if platforms[i].getHasCoin():
-                    screen.blit(coinSprite, (platforms[i].getX(), platforms[i].getY()))
+                    screen.blit(coinSprite, (int(platforms[i].getCoinX()), int(platforms[i].getCoinY())))
     
             screen.blit(playerSprite, (int(player.getX()), int(player.getY())))
             screen.blit(lavaSprite, (0, int(lavaY)))
             screen.blit(scoreBoxSprite, (17, 17))
             screen.blit(font.render(score, True, (0, 0, 0)), (28, 20))
-            screen.blit(font.render(highscore, True, (0, 0, 0)), (17, 90))
+            screen.blit(font32.render(highscore, True, (0, 0, 0)), (17, 90))
+        
+        wasMouse = pygame.mouse.get_pressed()[0]
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

@@ -45,11 +45,11 @@ class Player:
     def updatePosition(self):
         global gravity
         self.x += self.velocity[0]
-        self.y += self.velocity[1]
+        self.y -= self.velocity[1]
         if not self.isOnGround():
-            self.velocity[1] += gravity
+            self.velocity[1] -= gravity
         else:
-            velocity = [0,0]
+            self.velocity = [0,0]
         
         if self.x < 0:
             self.velocity[0] *= 1
