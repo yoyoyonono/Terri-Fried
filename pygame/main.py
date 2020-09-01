@@ -51,11 +51,13 @@ def checkPlayerCollision():
             platforms[i].setHasCoin(False)
             playCoinFX = True
         if player.getX() + 1 < platforms[i].getX() + platforms[i].getWidth() and player.getX() + player.getWidth() > platforms[i].getX() and player.getY() - player.getHeight() <= platforms[i].getY() and player.getY() > platforms[i].getY() - platforms[i].getHeight():
-            if player.getY() > platforms[i].getY() + platforms[i].getHeight()/2:
+            if player.getY() > platforms[i].getY() - platforms[i].getHeight()/2:
                 player.setVelocity(player.getVelocity()[0], 5)
-            elif player.getY() + player.getHeight() < platforms[i].getY() + platforms[i].getHeight():
+            elif player.getY() - player.getHeight() < platforms[i].getY() - platforms[i].getHeight():
+                print('set platform', True)
                 onPlatform = True
                 player.setY(platforms[i].getY() - player.getHeight())
+                player.setY(player.getY() + 1)
     player.setOnPlatform(onPlatform)
 
 def main():

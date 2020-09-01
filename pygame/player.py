@@ -37,9 +37,11 @@ class Player:
         self.onPlatform = result
 
     def getVelocity(self):
+        print('get velocity', self.velocity)
         return self.velocity
 
     def setVelocity(self, x, y):
+        print('set velocity', self.velocity)
         self.velocity = [x,y]
     
     def updatePosition(self):
@@ -48,11 +50,13 @@ class Player:
         self.y -= self.velocity[1]
         if not self.isOnGround():
             self.velocity[1] -= gravity
+            print('gra velocity', self.velocity, self.onPlatform)
+
         else:
             self.velocity = [0,0]
         
         if self.x < 0:
-            self.velocity[0] *= 1
+            self.velocity[0] *= -1
 
         if self.x + self.width > 800:
             self.velocity[0] *= -1 
